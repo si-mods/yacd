@@ -39,4 +39,9 @@ export const data = {
   update_all_rule_provider: '更新所有 rule provider',
   update_all_proxy_provider: '更新所有 proxy providers',
   dark_mode_pure_black_toggle_label: '在黑色主题下使用纯黑背景',
+  Flow: '实时路由',
+  'Outbound Nodes': '出口节点（实时）',
+  'Proxy Groups': '代理组（实时）',
+  'Active Flows': '连接流',
+  no_active_flows: '暂无活动连接...',
 };

@@ -32,6 +32,7 @@ const { lazy, Suspense } = React;
 
 const Connections = lazy(() => import('./Connections'));
 const Config = lazy(() => import('./Config'));
+const Flow = lazy(() => import('./flow/Flow'));
 const Logs = lazy(() => import('./Logs'));
 const Proxies = lazy(() => import('./proxies/Proxies'));
 const Rules = lazy(() => import('./Rules'));
@@ -39,6 +40,7 @@ const StyleGuide = lazy(() => import('$src/components/style/StyleGuide'));
 
 const routes = [
   { path: '/', element: <Home /> },
+  { path: '/flow', element: <Flow /> },
   {
     path: '/connections',
     element: (

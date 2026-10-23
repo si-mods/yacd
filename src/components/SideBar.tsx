@@ -3,7 +3,15 @@ import cx from 'clsx';
 import * as React from 'react';
 import { Info } from 'react-feather';
 import { useTranslation } from 'react-i18next';
-import { FcAreaChart, FcDocument, FcGlobe, FcLink, FcRuler, FcSettings } from 'react-icons/fc';
+import {
+  FcAreaChart,
+  FcDocument,
+  FcGlobe,
+  FcLink,
+  FcRuler,
+  FcSettings,
+  FcWorkflow,
+} from 'react-icons/fc';
 import { Link, useLocation } from 'react-router-dom';
 
 import { ThemeSwitcher } from './shared/ThemeSwitcher';
@@ -16,6 +24,7 @@ const icons = {
   file: FcDocument,
   settings: FcSettings,
   link: FcLink,
+  workflow: FcWorkflow,
 };
 
 const SideBarRow = React.memo(function SideBarRow({
@@ -43,6 +52,7 @@ interface SideBarRowProps {
 
 const pages = [
   { to: '/', iconId: 'activity', labelText: 'Overview' },
+  { to: '/flow', iconId: 'workflow', labelText: 'Flow' },
   { to: '/proxies', iconId: 'globe', labelText: 'Proxies' },
   { to: '/rules', iconId: 'command', labelText: 'Rules' },
   { to: '/connections', iconId: 'link', labelText: 'Conns' },

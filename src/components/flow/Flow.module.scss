@@ -1,0 +1,238 @@
+.flow {
+  color: var(--color-text);
+}
+
+.statRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 30px 0 30px;
+}
+
+.statCard {
+  flex: 1 1 160px;
+  background: var(--color-bg-card);
+  border-radius: 10px;
+  padding: 12px 16px;
+  min-width: 140px;
+}
+
+.statLabel {
+  font-size: 0.85em;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+.statValue {
+  font-size: 1.35em;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.statUnit {
+  font-size: 0.7em;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  margin-left: 2px;
+}
+
+.section {
+  padding: 18px 30px 0 30px;
+}
+
+.sectionTitle {
+  font-size: 0.9em;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--color-text-secondary);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.nodeRank {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--color-bg-card);
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+
+.nodeRow {
+  display: grid;
+  grid-template-columns: minmax(90px, 180px) 1fr minmax(70px, auto);
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9em;
+}
+
+.nodeName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nodeBarTrack {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-separator);
+  overflow: hidden;
+}
+
+.nodeBar {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #2f80ed, #56ccf2);
+  transition: width 0.6s ease;
+  min-width: 2px;
+}
+
+.nodeSpeed {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+}
+
+.groupChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.groupChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-bg-card);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.85em;
+}
+
+.groupChipSpeed {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+}
+
+.flowList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 30px;
+}
+
+.flowRow {
+  display: grid;
+  grid-template-columns: minmax(200px, 1.6fr) minmax(90px, 1fr) minmax(140px, 1.2fr) minmax(
+      90px,
+      auto
+    );
+  gap: 10px;
+  align-items: center;
+  background: var(--color-bg-card);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.88em;
+}
+
+.flowEndpoint {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.flowHost {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flowSource {
+  color: var(--color-text-secondary);
+  font-size: 0.85em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chainChips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.chainChip {
+  background: var(--bg-near-transparent);
+  border-radius: 4px;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+
+.chainChipNode {
+  background: rgba(47, 128, 237, 0.25);
+  font-weight: 600;
+}
+
+.chainArrow {
+  color: var(--color-text-secondary);
+}
+
+.flowSpeedCol {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 90px;
+}
+
+.flowSpeedNums {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85em;
+  color: var(--color-text-secondary);
+}
+
+.flowBarTrack {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-separator);
+  overflow: hidden;
+}
+
+.flowBar {
+  height: 100%;
+  background: linear-gradient(90deg, #27ae60, #6fcf97);
+  transition: width 0.6s ease;
+}
+
+.ruleText {
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.placeHolder {
+  padding: 60px 0;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 768px) {
+  .statRow,
+  .section {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .flowRow {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
