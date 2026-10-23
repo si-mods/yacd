@@ -26,6 +26,7 @@ type FlowRow = {
   node: string;
   groups: string[];
   network: string;
+  chains: string[];
   speeds: Speeds;
 };
 
@@ -87,6 +88,7 @@ function buildState(items: ConnectionItem[], prevKv: Map<string, Speeds>): FlowS
       node,
       groups: groups.reverse(),
       network: c.metadata.network,
+      chains: c.chains ?? [],
       speeds: { down, up },
     });
   }
@@ -153,6 +155,44 @@ function GroupChips({ entries }: { entries: Array<[string, Agg]> }) {
   );
 }
 
+type GroupMode = '' | 'rule' | 'chains' | 'node' | 'host';
+
+// metacubexd-style groupable columns: key extractor per mode
+function groupKeyOf(row: FlowRow, mode: GroupMode): string {
+  switch (mode) {
+    case 'rule':
+      return row.rule;
+    case 'chains':
+      // full chain path, e.g. "Google > 🇭🇰 HK > HK 12"
+      return row.chains.length > 0 ? [...row.chains].reverse().join(' → ') : 'DIRECT';
+    case 'node':
+      return row.node;
+    case 'host':
+      return row.host.split(':')[0] || row.host;
+    default:
+      return '';
+  }
+}
+
+type FlowGroup = { key: string; rows: FlowRow[]; agg: Agg };
+
+function buildGroups(rows: FlowRow[], mode: GroupMode): FlowGroup[] {
+  const map = new Map<string, FlowGroup>();
+  for (const r of rows) {
+    const key = groupKeyOf(r, mode);
+    let g = map.get(key);
+    if (!g) {
+      g = { key, rows: [], agg: { down: 0, up: 0, conns: 0 } };
+      map.set(key, g);
+    }
+    g.rows.push(r);
+    g.agg.down += r.speeds.down;
+    g.agg.up += r.speeds.up;
+    g.agg.conns += 1;
+  }
+  return [...map.values()].sort((a, b) => b.agg.down + b.agg.up - (a.agg.down + a.agg.up));
+}
+
 function FlowRowView({ row, maxSpeed }: { row: FlowRow; maxSpeed: number }) {
   const speed = row.speeds.down + row.speeds.up;
   const pct = maxSpeed > 0 && speed > IDLE_SPEED ? (speed / maxSpeed) * 100 : 0;
@@ -195,6 +235,8 @@ export default function Flow() {
   const [state, setState] = useState<FlowState>(emptyState);
   const prevTotalsRef = useRef(new Map<string, Speeds>());
   const lastTickRef = useRef(0);
+  const [groupMode, setGroupMode] = useState<GroupMode>('');
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const read = React.useCallback(({ connections }: { connections: ConnectionItem[] }) => {
     // the ws ticks fast; only rebuild at ~1Hz so the bars animate smoothly
@@ -218,6 +260,23 @@ export default function Flow() {
     [state.rows],
   );
   const { t } = useTranslation();
+  const modeLabels: Array<[GroupMode, string]> = [
+    ['', t('group_none')],
+    ['rule', t('group_by_rule')],
+    ['chains', t('group_by_chains')],
+    ['node', t('group_by_node')],
+    ['host', t('group_by_host')],
+  ];
+  const groups = useMemo(
+    () => (groupMode ? buildGroups(state.rows, groupMode) : []),
+    [state.rows, groupMode],
+  );
+
+  const switchMode = (m: GroupMode) => {
+    setGroupMode(m);
+    setExpanded({});
+  };
+  const toggleGroup = (key: string) => setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
 
   return (
     <div className={s.flow}>
@@ -239,9 +298,63 @@ export default function Flow() {
       <NodeRank entries={state.byNode} max={maxNodeDown} />
       <GroupChips entries={state.byGroup} />
       <div className={s.section}>
-        <div className={s.sectionTitle}>{t('Active Flows')}</div>
+        <div className={s.sectionTitle}>
+          {t('Active Flows')}
+          <span className={s.groupToolbar}>
+            {modeLabels.map(([m, label]) => (
+              <button
+                key={m}
+                type="button"
+                className={`${s.groupModeBtn} ${groupMode === m ? s.groupModeBtnActive : ''}`}
+                onClick={() => switchMode(m)}
+              >
+                {label}
+              </button>
+            ))}
+          </span>
+        </div>
         {state.rows.length === 0 ? (
           <div className={s.placeHolder}>{t('no_active_flows')}</div>
+        ) : groupMode ? (
+          <div className={s.flowList}>
+            {groups.map((g) => {
+              const isOpen = !!expanded[g.key];
+              return (
+                <React.Fragment key={g.key}>
+                  <div
+                    className={s.groupHeader}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => toggleGroup(g.key)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleGroup(g.key);
+                      }
+                    }}
+                  >
+                    <span className={`${s.groupChevron} ${isOpen ? s.groupChevronOpen : ''}`}>
+                      ▶
+                    </span>
+                    <span className={s.groupTitle} title={g.key}>
+                      {g.key}
+                    </span>
+                    <span className={s.groupCount}>({g.agg.conns})</span>
+                    <span className={s.groupAggSpeed}>
+                      ↓{prettyBytes(g.agg.down)}/s ↑{prettyBytes(g.agg.up)}/s
+                    </span>
+                  </div>
+                  {isOpen && (
+                    <div className={s.groupChildren}>
+                      {g.rows.map((row) => (
+                        <FlowRowView key={row.id} row={row} maxSpeed={maxRowSpeed} />
+                      ))}
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
         ) : (
           <div className={s.flowList}>
             {state.rows.map((row) => (

@@ -44,4 +44,9 @@ export const data = {
   'Proxy Groups': 'Proxy Groups (live)',
   'Active Flows': 'Active Flows',
   no_active_flows: 'No active connections yet...',
+  group_none: 'Flat',
+  group_by_rule: 'Rule',
+  group_by_chains: 'Chain',
+  group_by_node: 'Node',
+  group_by_host: 'Host',
 };

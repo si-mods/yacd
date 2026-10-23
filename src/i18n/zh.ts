@@ -44,4 +44,9 @@ export const data = {
   'Proxy Groups': '代理组（实时）',
   'Active Flows': '连接流',
   no_active_flows: '暂无活动连接...',
+  group_none: '平铺',
+  group_by_rule: '按规则',
+  group_by_chains: '按链路',
+  group_by_node: '按节点',
+  group_by_host: '按域名',
 };

@@ -236,3 +236,91 @@
     gap: 6px;
   }
 }
+
+/* --- grouped flows (metacubexd-style collapsible groups) --- */
+
+.groupToolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.groupModeBtn {
+  border: 1px solid var(--color-separator);
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-radius: 999px;
+  padding: 3px 12px;
+  font-size: 0.8em;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.groupModeBtn:hover {
+  color: var(--color-text);
+  border-color: var(--color-focus-blue);
+}
+
+.groupModeBtnActive {
+  background: var(--color-focus-blue);
+  border-color: var(--color-focus-blue);
+  color: #fff;
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-bg-card);
+  border-radius: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-size: 0.9em;
+  user-select: none;
+}
+
+.groupHeader:hover {
+  filter: brightness(1.08);
+}
+
+.groupChevron {
+  color: var(--color-text-secondary);
+  transition: transform 0.2s ease;
+  display: inline-flex;
+}
+
+.groupChevronOpen {
+  transform: rotate(90deg);
+}
+
+.groupTitle {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.groupCount {
+  color: var(--color-text-secondary);
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+
+.groupAggSpeed {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85em;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.groupChildren {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0 4px 18px;
+}
