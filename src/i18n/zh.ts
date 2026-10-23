@@ -49,4 +49,6 @@ export const data = {
   group_by_chains: '按链路',
   group_by_node: '按节点',
   group_by_host: '按域名',
+  'DMIT Monthly Transfer': 'DMIT 月度流量',
+  Remaining: '剩余',
 };

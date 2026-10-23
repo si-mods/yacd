@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ConnectionItem, fetchData } from '../../api/connections';
 import prettyBytes from '../../misc/pretty-bytes';
 import { useApiConfig } from '../../store/app';
+import type { ClashAPIConfig } from '../../types';
 import { ContentHeader } from '../ContentHeader';
 import s from './Flow.module.scss';
 
@@ -98,6 +99,64 @@ function buildState(items: ConnectionItem[], prevKv: Map<string, Speeds>): FlowS
     (a, b) => b[1].down + b[1].up - (a[1].down + a[1].up),
   );
   return { total, byNode, byGroup, rows: rows.slice(0, MAX_ROWS), qty: items.length };
+}
+
+type QuotaInfo = {
+  node: string;
+  month: string;
+  used: number;
+  quota: number;
+  remaining: number;
+  pct: number;
+};
+
+function useQuota(apiConfig: ClashAPIConfig): QuotaInfo | null {
+  const [quota, setQuota] = useState<QuotaInfo | null>(null);
+  useEffect(() => {
+    let dead = false;
+    const load = () => {
+      fetch('http://100.102.98.62:8765/')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (!dead && d) setQuota(d);
+        })
+        .catch(() => {
+          /* endpoint down; keep last value */
+        });
+    };
+    load();
+    const timer = setInterval(load, 5 * 60 * 1000);
+    return () => {
+      dead = true;
+      clearInterval(timer);
+    };
+  }, [apiConfig]);
+  return quota;
+}
+
+function QuotaCard({ quota }: { quota: QuotaInfo }) {
+  const { t } = useTranslation();
+  const warn = quota.pct >= 80;
+  return (
+    <div className={`${s.statCard} ${s.quotaCard}`}>
+      <div className={s.statLabel}>
+        {t('DMIT Monthly Transfer')} · {quota.month}
+      </div>
+      <Speed v={quota.used} suffix={' / ' + prettyBytes(quota.quota)} />
+      <div className={s.quotaBarTrack}>
+        <div
+          className={`${s.quotaBar} ${warn ? s.quotaBarWarn : ''}`}
+          style={{ width: `${Math.min(quota.pct, 100)}%` }}
+        />
+      </div>
+      <div className={s.quotaMeta}>
+        <span>
+          {quota.pct}% · {t('Remaining')} {prettyBytes(quota.remaining)}
+        </span>
+        <span>{quota.node}</span>
+      </div>
+    </div>
+  );
 }
 
 function Speed({ v, suffix = '/s' }: { v: number; suffix?: string }) {
@@ -237,6 +296,7 @@ export default function Flow() {
   const lastTickRef = useRef(0);
   const [groupMode, setGroupMode] = useState<GroupMode>('');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const quota = useQuota(apiConfig);
 
   const read = React.useCallback(({ connections }: { connections: ConnectionItem[] }) => {
     // the ws ticks fast; only rebuild at ~1Hz so the bars animate smoothly
@@ -294,6 +354,7 @@ export default function Flow() {
           <div className={s.statLabel}>{t('Active Connections')}</div>
           <Speed v={state.qty} suffix="" />
         </div>
+        {quota && <QuotaCard quota={quota} />}
       </div>
       <NodeRank entries={state.byNode} max={maxNodeDown} />
       <GroupChips entries={state.byGroup} />

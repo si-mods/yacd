@@ -49,4 +49,6 @@ export const data = {
   group_by_chains: 'Chain',
   group_by_node: 'Node',
   group_by_host: 'Host',
+  'DMIT Monthly Transfer': 'DMIT Monthly Transfer',
+  Remaining: 'Remaining',
 };
