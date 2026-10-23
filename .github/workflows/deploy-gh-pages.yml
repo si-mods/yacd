@@ -27,9 +27,6 @@ jobs:
 
       - run: pnpm build
 
-      # this fork serves via si-mods.github.io default apex; upstream CNAME would hijack it
-      - run: rm -f public/CNAME
-
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
