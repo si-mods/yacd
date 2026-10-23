@@ -51,4 +51,6 @@ export const data = {
   group_by_host: 'Host',
   'DMIT Monthly Transfer': 'DMIT Monthly Transfer',
   Remaining: 'Remaining',
+  'Resets in': 'Resets in',
+  days: 'days',
 };

@@ -103,11 +103,12 @@ function buildState(items: ConnectionItem[], prevKv: Map<string, Speeds>): FlowS
 
 type QuotaInfo = {
   node: string;
-  month: string;
   used: number;
   quota: number;
   remaining: number;
   pct: number;
+  cycle_start: string;
+  next_reset: string;
 };
 
 function useQuota(apiConfig: ClashAPIConfig): QuotaInfo | null {
@@ -137,10 +138,14 @@ function useQuota(apiConfig: ClashAPIConfig): QuotaInfo | null {
 function QuotaCard({ quota }: { quota: QuotaInfo }) {
   const { t } = useTranslation();
   const warn = quota.pct >= 80;
+  const daysLeft = Math.max(
+    0,
+    Math.ceil((new Date(quota.next_reset).getTime() - Date.now()) / 86400000),
+  );
   return (
     <div className={`${s.statCard} ${s.quotaCard}`}>
       <div className={s.statLabel}>
-        {t('DMIT Monthly Transfer')} · {quota.month}
+        {t('DMIT Monthly Transfer')} · {quota.cycle_start} → {quota.next_reset}
       </div>
       <Speed v={quota.used} suffix={' / ' + prettyBytes(quota.quota)} />
       <div className={s.quotaBarTrack}>
@@ -153,7 +158,9 @@ function QuotaCard({ quota }: { quota: QuotaInfo }) {
         <span>
           {quota.pct}% · {t('Remaining')} {prettyBytes(quota.remaining)}
         </span>
-        <span>{quota.node}</span>
+        <span>
+          {t('Resets in')} {daysLeft} {t('days')} · {quota.node}
+        </span>
       </div>
     </div>
   );

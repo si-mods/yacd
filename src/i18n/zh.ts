@@ -51,4 +51,6 @@ export const data = {
   group_by_host: '按域名',
   'DMIT Monthly Transfer': 'DMIT 月度流量',
   Remaining: '剩余',
+  'Resets in': '重置',
+  days: '天后',
 };
