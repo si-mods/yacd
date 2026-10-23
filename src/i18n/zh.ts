@@ -53,4 +53,5 @@ export const data = {
   Remaining: '剩余',
   'Resets in': '重置',
   days: '天后',
+  'Paid reset up to': '可付费重置',
 };

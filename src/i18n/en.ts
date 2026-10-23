@@ -53,4 +53,5 @@ export const data = {
   Remaining: 'Remaining',
   'Resets in': 'Resets in',
   days: 'days',
+  'Paid reset up to': 'Paid reset available',
 };

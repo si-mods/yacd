@@ -109,6 +109,8 @@ type QuotaInfo = {
   pct: number;
   cycle_start: string;
   next_reset: string;
+  max_reset_frac: number;
+  purchasable: number;
 };
 
 function useQuota(apiConfig: ClashAPIConfig): QuotaInfo | null {
@@ -162,6 +164,13 @@ function QuotaCard({ quota }: { quota: QuotaInfo }) {
           {t('Resets in')} {daysLeft} {t('days')} · {quota.node}
         </span>
       </div>
+      {quota.purchasable > 0 && quota.pct >= 70 && (
+        <div className={`${s.quotaMeta} ${s.quotaResetHint}`}>
+          <span>
+            ⚡ {t('Paid reset up to')} +{prettyBytes(quota.purchasable)}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
