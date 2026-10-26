@@ -61,12 +61,35 @@ type Trip = {
 
 // path length cache, keyed by the d it was measured for (magpie's measure)
 const measured = new WeakMap<SVGPathElement, { d: string; L: number }>();
+const DEVICE_KEY = 'yacd.routing.devices';
+
 function lenOf(p: SVGPathElement): number {
   const d = p.getAttribute('d');
   if (!d) return 0;
   let m = measured.get(p);
   if (!m || m.d !== d) measured.set(p, (m = { d, L: p.getTotalLength() || 0 }));
   return m.L;
+}
+
+// Clash metadata has no device name, only sourceIP; the reader names
+// their own devices, the map kept in localStorage
+function loadDevices(): Record<string, string> {
+  try {
+    return JSON.parse(localStorage.getItem(DEVICE_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function saveDevice(ip: string, name: string) {
+  try {
+    const m = loadDevices();
+    if (name) m[ip] = name;
+    else delete m[ip];
+    localStorage.setItem(DEVICE_KEY, JSON.stringify(m));
+  } catch {
+    // ignore
+  }
 }
 
 function pointAt(p: SVGPathElement, s: number) {
@@ -108,14 +131,43 @@ export const RoutingStage = forwardRef<RoutingHandle, { backend?: string }>(func
     const wireEl = wire(wireCls, hueOf(key));
     const name = document.createElement('b');
     name.className = s.nodeName;
-    name.textContent = key;
-    name.title = key;
     const sub = document.createElement('small');
     sub.className = s.nodeSub;
     root.append(name, sub);
     const st: Seat = { root, sub, wire: wireEl };
     map.set(key, st);
+    if (map === srcSeats.current) {
+      // a source is a device: show its name, the IP under it; click to
+      // name it — Clash metadata only has the IP
+      root.style.cursor = 'pointer';
+      root.title = 'Click to rename device';
+      root.onclick = () => {
+        const devices = loadDevices();
+        const next = window.prompt('Device name for ' + key + ' (empty to reset)', devices[key] || '');
+        if (next === null) return;
+        saveDevice(key, next.trim());
+        renderSrc(key);
+      };
+      renderSrc(key);
+    } else {
+      name.textContent = key;
+      name.title = key;
+    }
     return st;
+  }
+
+  // renderSrc fills a source seat from the device-name map: the name on
+  // top, the IP under it (the IP when unnamed)
+  function renderSrc(ip: string) {
+    const st = srcSeats.current.get(ip);
+    if (!st) return;
+    const named = loadDevices()[ip];
+    const name = st.root.querySelector('b');
+    if (name) {
+      name.textContent = named || ip;
+      name.title = named ? ip : '';
+    }
+    st.sub.textContent = named ? ip : '';
   }
 
   // seat keeps the columns to the seats still wanted, stable places,
