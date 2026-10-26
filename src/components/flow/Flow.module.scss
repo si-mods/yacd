@@ -276,6 +276,35 @@
   color: #f2994a;
 }
 
+.quotaTokenInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  border: 1px solid var(--color-separator);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 0.85em;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-focus, #6fcf97);
+  }
+}
+
+.quotaTokenClear {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: 0.85em;
+
+  &:hover {
+    color: var(--color-text);
+  }
+}
+
 /* --- grouped flows (metacubexd-style collapsible groups) --- */
 
 .groupToolbar {

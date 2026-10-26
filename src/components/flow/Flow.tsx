@@ -137,6 +137,153 @@ function useQuota(apiConfig: ClashAPIConfig): QuotaInfo | null {
   return quota;
 }
 
+// --- Linode monthly transfer quota ---
+
+const LINODE_TOKEN_KEY = 'yacd.linode.pat';
+const LINODE_ID = '108657942';
+
+type LinodeTransfer = {
+  used: number;
+  quota: number;
+  billing_cycle: string;
+};
+
+// transfer values are in bytes per Linode API docs
+async function fetchLinodeTransfer(token: string): Promise<LinodeTransfer | null> {
+  try {
+    const r = await fetch(`https://api.linode.com/v4/linode/instances/${LINODE_ID}/transfer`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!r.ok) return null;
+    const d = await r.json();
+    return {
+      used: Math.max(d.used, d.used_private || 0),
+      quota: d.quota,
+      billing_cycle: d.billing_cycle,
+    };
+  } catch {
+    return null;
+  }
+}
+
+type LinodeQuota = {
+  used: number;
+  quota: number;
+  pct: number;
+  remaining: number;
+  cycle: string;
+};
+
+function useLinodeQuota(): {
+  quota: LinodeQuota | null;
+  token: string;
+  setToken: (t: string) => void;
+} {
+  const [token, setTok] = useState(() => {
+    try {
+      return localStorage.getItem(LINODE_TOKEN_KEY) || '';
+    } catch {
+      return '';
+    }
+  });
+  const [quota, setQuota] = useState<LinodeQuota | null>(null);
+  useEffect(() => {
+    if (!token) {
+      setQuota(null);
+      return;
+    }
+    let dead = false;
+    const load = () =>
+      fetchLinodeTransfer(token).then((d) => {
+        if (!dead && d) {
+          setQuota({
+            used: d.used,
+            quota: d.quota,
+            pct: d.quota > 0 ? Math.round((d.used / d.quota) * 100) : 0,
+            remaining: Math.max(0, d.quota - d.used),
+            cycle: d.billing_cycle,
+          });
+        }
+      });
+    load();
+    const timer = setInterval(load, 5 * 60 * 1000);
+    return () => {
+      dead = true;
+      clearInterval(timer);
+    };
+  }, [token]);
+  const setToken = (t: string) => {
+    try {
+      if (t) localStorage.setItem(LINODE_TOKEN_KEY, t);
+      else localStorage.removeItem(LINODE_TOKEN_KEY);
+    } catch {
+      // ignore
+    }
+    setTok(t);
+  };
+  return { quota, token, setToken };
+}
+
+function LinodeQuotaCard({
+  quota,
+  token,
+  setToken,
+}: {
+  quota: LinodeQuota | null;
+  token: string;
+  setToken: (t: string) => void;
+}) {
+  const { t } = useTranslation();
+  const [draft, setDraft] = useState('');
+  if (!token) {
+    return (
+      <div className={`${s.statCard} ${s.quotaCard}`}>
+        <div className={s.statLabel}>{t('Linode Monthly Transfer')}</div>
+        <input
+          className={s.quotaTokenInput}
+          type="password"
+          placeholder={t('Linode PAT') as string}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && draft.trim()) setToken(draft.trim());
+          }}
+        />
+        <div className={s.quotaMeta}>{t('linode_pat_hint')}</div>
+      </div>
+    );
+  }
+  if (!quota) return null;
+  const warn = quota.pct >= 80;
+  return (
+    <div className={`${s.statCard} ${s.quotaCard}`}>
+      <div className={s.statLabel}>
+        {t('Linode Monthly Transfer')} · {quota.cycle}
+      </div>
+      <Speed v={quota.used} suffix={' / ' + prettyBytes(quota.quota)} />
+      <div className={s.quotaBarTrack}>
+        <div
+          className={`${s.quotaBar} ${warn ? s.quotaBarWarn : ''}`}
+          style={{ width: `${Math.min(quota.pct, 100)}%` }}
+        />
+      </div>
+      <div className={s.quotaMeta}>
+        <span>
+          {quota.pct}% · {t('Remaining')} {prettyBytes(quota.remaining)}
+        </span>
+        <button
+          type="button"
+          className={s.quotaTokenClear}
+          title={t('linode_pat_clear') as string}
+          onClick={() => setToken('')}
+        >
+          {t('linode_pat_clear')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function QuotaCard({ quota }: { quota: QuotaInfo }) {
   const { t } = useTranslation();
   const warn = quota.pct >= 80;
@@ -313,6 +460,7 @@ export default function Flow() {
   const [groupMode, setGroupMode] = useState<GroupMode>('');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const quota = useQuota(apiConfig);
+  const linode = useLinodeQuota();
 
   const read = React.useCallback(({ connections }: { connections: ConnectionItem[] }) => {
     // the ws ticks fast; only rebuild at ~1Hz so the bars animate smoothly
@@ -371,6 +519,7 @@ export default function Flow() {
           <Speed v={state.qty} suffix="" />
         </div>
         {quota && <QuotaCard quota={quota} />}
+        <LinodeQuotaCard quota={linode.quota} token={linode.token} setToken={linode.setToken} />
       </div>
       <NodeRank entries={state.byNode} max={maxNodeDown} />
       <GroupChips entries={state.byGroup} />

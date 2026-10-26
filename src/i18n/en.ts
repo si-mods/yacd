@@ -54,4 +54,8 @@ export const data = {
   'Resets in': 'Resets in',
   days: 'days',
   'Paid reset up to': 'Paid reset available',
+  'Linode Monthly Transfer': 'Linode Monthly Transfer',
+  'Linode PAT': 'Linode Personal Access Token',
+  linode_pat_hint: 'Read-only PAT, scope Linodes: Read Only; stored in localStorage only',
+  linode_pat_clear: 'Forget token',
 };
