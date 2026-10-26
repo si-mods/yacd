@@ -56,6 +56,6 @@ export const data = {
   'Paid reset up to': 'Paid reset available',
   'Linode Monthly Transfer': 'Linode Monthly Transfer',
   'Linode PAT': 'Linode Personal Access Token',
-  linode_pat_hint: 'Read-only PAT, scope Linodes: Read Only; stored in localStorage only',
+  linode_pat_hint: 'Requires Linodes + Account read-only scopes; stored in localStorage only',
   linode_pat_clear: 'Forget token',
 };
