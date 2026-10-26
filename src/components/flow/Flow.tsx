@@ -140,7 +140,6 @@ function useQuota(apiConfig: ClashAPIConfig): QuotaInfo | null {
 // --- Linode monthly transfer quota ---
 
 const LINODE_TOKEN_KEY = 'yacd.linode.pat';
-const LINODE_ID = '108657942';
 
 type LinodeTransfer = {
   used: number;
@@ -148,19 +147,18 @@ type LinodeTransfer = {
   billing_cycle: string;
 };
 
-// transfer values are in bytes per Linode API docs
+// account-level transfer; all values GB (docs: "in Gigabytes")
 async function fetchLinodeTransfer(token: string): Promise<LinodeTransfer | null> {
   try {
-    const r = await fetch(`https://api.linode.com/v4/linode/instances/${LINODE_ID}/transfer`, {
+    const r = await fetch('https://api.linode.com/v4/account/transfer', {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!r.ok) return null;
     const d = await r.json();
     return {
-      // used is bytes; quota is GB per API docs
-      used: Math.max(d.used, d.used_private || 0),
+      used: d.used * 1073741824,
       quota: d.quota * 1073741824,
-      billing_cycle: d.billing_cycle,
+      billing_cycle: '',
     };
   } catch {
     return null;
