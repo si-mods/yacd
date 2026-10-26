@@ -58,4 +58,5 @@ export const data = {
   'Linode PAT': 'Linode 个人访问令牌',
   linode_pat_hint: '需要 Linodes + Account 两个只读 scope；仅保存在本地浏览器',
   linode_pat_clear: '清除令牌',
+  Routing: '路由（实时）',
 };

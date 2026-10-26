@@ -1,0 +1,228 @@
+// the routing stage, adapted from yetone/magpie's rt-stage / pr-stage
+.stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: 150px 110px minmax(0, 1fr);
+  column-gap: 44px;
+  align-items: center;
+  min-height: 190px;
+  padding: 16px 12px;
+  background: var(--color-bg-card);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.wires,
+.sky {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.sky {
+  z-index: 2;
+}
+
+.wire {
+  fill: none;
+  stroke: var(--color-separator);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  transition: stroke 0.25s, opacity 0.3s;
+}
+
+.wire.live {
+  stroke: var(--agent, var(--color-text-secondary));
+  stroke-dasharray: 3 5;
+  animation: flow 0.7s linear infinite;
+}
+
+@keyframes flow {
+  to {
+    stroke-dashoffset: -8;
+  }
+}
+
+.srcs,
+.list {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  align-content: center;
+}
+
+.srcNode,
+.dstNode {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 8px 10px 7px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-separator);
+  border-radius: 10px;
+  text-align: center;
+  transition: border-color 0.3s;
+}
+
+.srcNode::before {
+  content: '';
+  position: absolute;
+  margin-top: -4px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--agent, var(--color-text-secondary));
+  align-self: flex-start;
+}
+
+.dstNode {
+  position: relative;
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  column-gap: 9px;
+  align-items: center;
+  padding: 8px 12px;
+  text-align: left;
+
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-text-secondary);
+    transition: background 0.3s, border-color 0.3s;
+  }
+
+  &.on::before {
+    background: var(--agent, var(--color-text));
+    border-color: var(--agent, var(--color-text));
+  }
+}
+
+.nodeName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nodeSub {
+  grid-column: 2 / 4;
+  font-size: 10.5px;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hub {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 8px 10px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-text);
+  border-radius: 12px;
+  box-shadow: 0 0 0 4px var(--color-bg-card);
+  text-align: center;
+}
+
+.hubLogo {
+  width: 28px;
+  height: 28px;
+  margin-bottom: 3px;
+}
+
+.hubName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.hubHost {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10.5px;
+  color: var(--color-text-secondary);
+}
+
+.hubChip {
+  margin-top: 5px;
+  font-style: normal;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--color-text);
+  color: var(--color-bg-card);
+  font-variant-numeric: tabular-nums;
+}
+
+.idle {
+  display: block;
+  padding: 14px 10px;
+  border: 1px dashed var(--color-separator);
+  border-radius: 10px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* the packets */
+.pkt {
+  fill: var(--agent, var(--color-text));
+  filter: drop-shadow(0 0 3px var(--agent, var(--color-text-secondary)));
+}
+
+.pkt.back {
+  fill: var(--color-bg-card);
+  stroke: var(--agent, var(--color-text));
+  stroke-width: 2.25;
+}
+
+.pkt.held {
+  animation: held 1.2s ease-in-out infinite;
+}
+
+.pkt.gone {
+  opacity: 0;
+}
+
+@keyframes held {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (max-width: 768px) {
+  .stage {
+    grid-template-columns: 110px 90px minmax(0, 1fr);
+    column-gap: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wire.live {
+    animation: none;
+  }
+
+  .pkt.held {
+    animation: none;
+  }
+}

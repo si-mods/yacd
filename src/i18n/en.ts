@@ -58,4 +58,5 @@ export const data = {
   'Linode PAT': 'Linode Personal Access Token',
   linode_pat_hint: 'Requires Linodes + Account read-only scopes; stored in localStorage only',
   linode_pat_clear: 'Forget token',
+  Routing: 'Routing (live)',
 };

@@ -7,6 +7,8 @@ import { useApiConfig } from '../../store/app';
 import type { ClashAPIConfig } from '../../types';
 import { ContentHeader } from '../ContentHeader';
 import s from './Flow.module.scss';
+import type { RoutingHandle, StageOpen } from './RoutingStage';
+import { RoutingStage } from './RoutingStage';
 
 const { useEffect, useMemo, useRef, useState } = React;
 
@@ -47,18 +49,25 @@ const emptyState: FlowState = {
   qty: 0,
 };
 
-function buildState(items: ConnectionItem[], prevKv: Map<string, Speeds>): FlowState {
+function buildState(
+  items: ConnectionItem[],
+  prevKv: Map<string, Speeds>,
+): { state: FlowState; opened: StageOpen[]; closed: string[] } {
   const total: Speeds = { down: 0, up: 0 };
   const nodeAgg = new Map<string, Agg>();
   const groupAgg = new Map<string, Agg>();
   const rows: FlowRow[] = [];
+  const opened: StageOpen[] = [];
+  const seen = new Set<string>();
   for (const c of items) {
     const prev = prevKv.get(c.id);
     // chains[0] is the actual outbound node, the rest are the matched groups
     const [node = 'DIRECT', ...groups] = c.chains ?? [];
+    if (!prev) opened.push({ id: c.id, src: c.metadata.sourceIP || 'DIRECT', node });
     const down = c.download - (prev ? prev.down : 0);
     const up = c.upload - (prev ? prev.up : 0);
     prevKv.set(c.id, { down: c.download, up: c.upload });
+    seen.add(c.id);
     total.down += down;
     total.up += up;
     const na = nodeAgg.get(node);
@@ -98,7 +107,18 @@ function buildState(items: ConnectionItem[], prevKv: Map<string, Speeds>): FlowS
   const byGroup = [...groupAgg.entries()].sort(
     (a, b) => b[1].down + b[1].up - (a[1].down + a[1].up),
   );
-  return { total, byNode, byGroup, rows: rows.slice(0, MAX_ROWS), qty: items.length };
+  const closed: string[] = [];
+  for (const id of [...prevKv.keys()]) {
+    if (!seen.has(id)) {
+      closed.push(id);
+      prevKv.delete(id);
+    }
+  }
+  return {
+    state: { total, byNode, byGroup, rows: rows.slice(0, MAX_ROWS), qty: items.length },
+    opened,
+    closed,
+  };
 }
 
 type QuotaInfo = {
@@ -460,13 +480,17 @@ export default function Flow() {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const quota = useQuota(apiConfig);
   const linode = useLinodeQuota();
+  const stageRef = useRef<RoutingHandle>(null);
 
   const read = React.useCallback(({ connections }: { connections: ConnectionItem[] }) => {
     // the ws ticks fast; only rebuild at ~1Hz so the bars animate smoothly
     const now = Date.now();
     if (now - lastTickRef.current < 900) return;
     lastTickRef.current = now;
-    setState(buildState(connections ?? [], prevTotalsRef.current));
+    const { state: next, opened, closed } = buildState(connections ?? [], prevTotalsRef.current);
+    setState(next);
+    stageRef.current?.push({ opened, closed });
+    stageRef.current?.speeds(next.byNode.map(([n, a]) => [n, a.down] as [string, number]), next.qty);
   }, []);
 
   useEffect(() => {
@@ -519,6 +543,10 @@ export default function Flow() {
         </div>
         {quota && <QuotaCard quota={quota} />}
         <LinodeQuotaCard quota={linode.quota} token={linode.token} setToken={linode.setToken} />
+      </div>
+      <div className={s.section}>
+        <div className={s.sectionTitle}>{t('Routing')}</div>
+        <RoutingStage ref={stageRef} backend={apiConfig.baseURL} />
       </div>
       <NodeRank entries={state.byNode} max={maxNodeDown} />
       <GroupChips entries={state.byGroup} />
