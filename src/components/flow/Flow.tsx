@@ -157,8 +157,9 @@ async function fetchLinodeTransfer(token: string): Promise<LinodeTransfer | null
     if (!r.ok) return null;
     const d = await r.json();
     return {
+      // used is bytes; quota is GB per API docs
       used: Math.max(d.used, d.used_private || 0),
-      quota: d.quota,
+      quota: d.quota * 1073741824,
       billing_cycle: d.billing_cycle,
     };
   } catch {
